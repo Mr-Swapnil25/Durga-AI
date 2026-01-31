@@ -1,0 +1,9 @@
+{
+  "name": "DURGA: Digital Guardian",
+  "description": "A Cyberpunk/Web3 aesthetic women's safety app with real-time SOS, community heatmaps, and panic-proof UI.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
