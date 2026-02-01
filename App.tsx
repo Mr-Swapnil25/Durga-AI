@@ -6,6 +6,7 @@ import CommunityMap from './components/CommunityMap';
 import BottomNav from './components/BottomNav';
 import FakeCallManager from './components/FakeCallManager';
 import AddCircle from './components/AddCircle';
+import MedicalID from './components/MedicalID';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const App: React.FC = () => {
@@ -40,6 +41,8 @@ const App: React.FC = () => {
         return <CommunityMap />;
       case ViewState.OPS:
         return <AddCircle />;
+      case ViewState.PROFILE:
+        return <MedicalID />;
       case ViewState.DASHBOARD:
       default:
         return <Dashboard onTriggerSOS={handleTriggerSOS} setView={handleViewChange} />;
