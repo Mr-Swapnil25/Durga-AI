@@ -1,6 +1,5 @@
 import React from 'react';
 import { ViewState } from '../types';
-import { Shield, Map, Radio, User } from 'lucide-react';
 
 interface BottomNavProps {
   currentView: ViewState;
@@ -8,50 +7,64 @@ interface BottomNavProps {
 }
 
 const BottomNav: React.FC<BottomNavProps> = ({ currentView, setView }) => {
-  const navItems = [
-    { view: ViewState.DASHBOARD, icon: Shield, label: 'CMD' },
-    { view: ViewState.MAP, icon: Map, label: 'MAP' },
-    { view: ViewState.OPS, icon: Radio, label: 'OPS' },
-    { view: ViewState.PROFILE, icon: User, label: 'ID' },
-  ];
+  const isDashboard = currentView === ViewState.DASHBOARD;
+  const isOps = currentView === ViewState.OPS;
+  const isMap = currentView === ViewState.MAP;
+  const isProfile = currentView === ViewState.PROFILE;
 
   return (
-    // Z-Index increased to 2000 to ensure it floats above Leaflet layers (which can go up to 1000)
-    <div className="fixed bottom-0 left-0 w-full z-[2000] pointer-events-auto">
-      {/* HUD Line Decoration */}
-      <div className="w-full h-[1px] bg-gradient-to-r from-transparent via-cyber-cyan/50 to-transparent"></div>
-      
-      {/* Navbar Container */}
-      <div className="px-6 pb-6 pt-4 flex justify-between items-end bg-[#050505]/95 backdrop-blur-xl border-t border-white/5 shadow-[0_-5px_20px_rgba(0,0,0,0.8)]">
-        {navItems.map((item) => {
-          const isActive = currentView === item.view;
-          return (
-            <button
-              key={item.label}
-              onClick={() => setView(item.view)}
-              className={`flex flex-col items-center gap-1 transition-all duration-300 relative ${
-                isActive ? 'text-cyber-cyan -translate-y-2' : 'text-gray-500 hover:text-gray-300'
-              }`}
-            >
-              {/* Active Background Glow */}
-              {isActive && (
-                <div className="absolute inset-0 bg-cyber-cyan/20 blur-xl rounded-full scale-150 opacity-50" />
-              )}
-              
-              <item.icon 
-                size={24} 
-                className={`relative z-10 ${isActive ? 'drop-shadow-[0_0_8px_rgba(0,240,255,0.8)]' : ''}`} 
-              />
-              <span className="text-[10px] font-orbitron tracking-widest relative z-10">{item.label}</span>
-              
-              {isActive && (
-                <div className="w-1 h-1 bg-cyber-cyan rounded-full mt-1 shadow-[0_0_5px_#00F0FF] relative z-10" />
-              )}
-            </button>
-          );
-        })}
+    <nav className="fixed bottom-0 left-0 w-full z-[2000]">
+      <div className="absolute bottom-0 w-full h-24 bg-[#111] border-t border-[#222] rounded-t-[2.5rem] shadow-2xl flex items-center justify-around px-6">
+        <button
+          onClick={() => setView(ViewState.DASHBOARD)}
+          className={`flex flex-col items-center gap-1 ${
+            isDashboard ? 'text-cyber-cyan' : 'text-gray-500 hover:text-white transition-colors'
+          }`}
+        >
+          <span className="material-symbols-outlined text-2xl">grid_view</span>
+          <span className="text-[9px] font-bold tracking-widest">HUB</span>
+        </button>
+
+        <button
+          onClick={() => setView(ViewState.OPS)}
+          className={`flex flex-col items-center gap-1 ${
+            isOps ? 'text-cyber-cyan' : 'text-gray-500 hover:text-white transition-colors'
+          }`}
+        >
+          <span className="material-symbols-outlined text-2xl">group</span>
+          <span className="text-[9px] font-bold tracking-widest">TEAM</span>
+        </button>
+
+        <div className="relative -top-8">
+          <button
+            onClick={() => setView(ViewState.MAP)}
+            className={`w-16 h-16 rounded-full bg-[#1a1a1a] border-4 border-[#050505] flex items-center justify-center shadow-neon-red relative z-10 group ${
+              isMap ? 'text-cyber-cyan' : 'text-primary'
+            }`}
+          >
+            <div className="absolute inset-0 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors"></div>
+            <span className="material-symbols-outlined text-3xl">shield</span>
+          </button>
+        </div>
+
+        <button
+          className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors"
+        >
+          <span className="material-symbols-outlined text-2xl">notifications</span>
+          <span className="text-[9px] font-bold tracking-widest">ALERTS</span>
+        </button>
+
+        <button
+          onClick={() => setView(ViewState.PROFILE)}
+          className={`flex flex-col items-center gap-1 ${
+            isProfile ? 'text-cyber-cyan' : 'text-gray-500 hover:text-white transition-colors'
+          }`}
+        >
+          <span className="material-symbols-outlined text-2xl">settings</span>
+          <span className="text-[9px] font-bold tracking-widest">SYS</span>
+        </button>
       </div>
-    </div>
+    </nav>
   );
 };
 

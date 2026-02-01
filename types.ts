@@ -3,7 +3,8 @@ export enum ViewState {
   SOS_ACTIVE = 'SOS_ACTIVE',
   MAP = 'MAP',
   OPS = 'OPS',
-  PROFILE = 'PROFILE'
+  PROFILE = 'PROFILE',
+  FAKE_CALL = 'FAKE_CALL'
 }
 
 export interface Coordinates {

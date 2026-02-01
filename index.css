@@ -1,0 +1,128 @@
+@import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
+/* Custom scrollbar hiding */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.clip-hexagon {
+  clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.sos-button-gradient {
+  background: radial-gradient(circle at 30% 30%, #ff6b6b, #f42525);
+}
+
+body {
+  min-height: max(884px, 100dvh);
+}
+
+/* SOS Active Screen Animations */
+@keyframes flashRed {
+  0%, 100% { box-shadow: inset 0 0 30px rgba(244, 37, 37, 0.2); }
+  50% { box-shadow: inset 0 0 100px rgba(244, 37, 37, 0.6); }
+}
+
+@keyframes pinPulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 37, 37, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 20px rgba(244, 37, 37, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(244, 37, 37, 0); }
+}
+
+@keyframes waveform {
+  0%, 100% { height: 20%; }
+  50% { height: 100%; }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+  20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.animate-flash-red {
+  animation: flashRed 2s infinite;
+}
+
+.pin-pulse {
+  animation: pinPulse 1.5s infinite;
+}
+
+.animate-waveform {
+  animation: waveform 1s ease-in-out infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
+}
+
+.shadow-neon-red {
+  box-shadow: 0 0 20px rgba(244, 37, 37, 0.5), 0 0 60px rgba(244, 37, 37, 0.2);
+}
+
+.shadow-inner-red {
+  box-shadow: inset 0 0 50px rgba(244, 37, 37, 0.3);
+}
+
+.drop-shadow-neon-red {
+  filter: drop-shadow(0 0 10px rgba(244, 37, 37, 0.8));
+}
+
+/* Lock screen prevention - disable text selection and context menu */
+.sos-lock-screen {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  touch-action: none;
+}
+
+/* Fake Call Animations */
+@keyframes shimmer {
+  to {
+    background-position: 200% center;
+  }
+}
+
+@keyframes pulseRing {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.7); }
+  70% { transform: scale(1); box-shadow: 0 0 0 15px rgba(74, 222, 128, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+}
+
+.shimmer-text {
+  background: linear-gradient(90deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,1) 50%, rgba(255,255,255,0.4) 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: shimmer 2s linear infinite;
+}
+
+.pulse-ring {
+  animation: pulseRing 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+}
+
+/* Cyber grid background for fake call setup */
+.cyber-grid {
+  background-image: linear-gradient(rgba(13, 185, 242, 0.05) 1px, transparent 1px),
+                    linear-gradient(90deg, rgba(13, 185, 242, 0.05) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Glass gradient background */
+.bg-glass-gradient {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.03) 100%);
+}
+

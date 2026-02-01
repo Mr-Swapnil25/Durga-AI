@@ -1,14 +1,17 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
     <title>DURGA: The Digital Guardian</title>
     
-    <!-- Google Fonts: Orbitron & Space Grotesk -->
+    <!-- Google Fonts: Orbitron, Space Grotesk & Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Orbitron:wght@400;500;700;900&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Material Symbols -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -17,21 +20,38 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             colors: {
+              'primary': '#f42525',
               'deep-void': '#050505',
+              'background-light': '#f8f5f5',
+              'background-dark': '#050505',
               'void-gray': '#121212',
               'durga-red': '#E63946',
               'guardian-purple': '#6B5EAE',
               'cyber-cyan': '#00F0FF',
             },
             fontFamily: {
+              display: ['Space Grotesk', 'sans-serif'],
               orbitron: ['Orbitron', 'sans-serif'],
               space: ['Space Grotesk', 'sans-serif'],
+              inter: ['Inter', 'sans-serif'],
+            },
+            borderRadius: {
+              DEFAULT: '1rem',
+              lg: '2rem',
+              xl: '3rem',
+              full: '9999px',
             },
             backgroundImage: {
               'grid-pattern': "linear-gradient(to right, #121212 1px, transparent 1px), linear-gradient(to bottom, #121212 1px, transparent 1px)",
+            },
+            boxShadow: {
+              'neon-red': '0 0 20px rgba(244, 37, 37, 0.5), 0 0 60px rgba(244, 37, 37, 0.2)',
+              'neon-cyan': '0 0 10px rgba(0, 240, 255, 0.5), 0 0 20px rgba(0, 240, 255, 0.3)',
+              '3d-glass': '0 15px 35px rgba(0,0,0,0.5), inset 0 2px 4px rgba(255,255,255,0.3), inset 0 -4px 6px rgba(0,0,0,0.5)',
             },
             animation: {
               'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
@@ -41,6 +61,24 @@
               siren: {
                 '0%, 100%': { boxShadow: '0 0 20px #E63946' },
                 '50%': { boxShadow: '0 0 50px #E63946' },
+              },
+              flashRed: {
+                '0%, 100%': { boxShadow: 'inset 0 0 30px rgba(244, 37, 37, 0.2)' },
+                '50%': { boxShadow: 'inset 0 0 100px rgba(244, 37, 37, 0.6)' },
+              },
+              pinPulse: {
+                '0%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(244, 37, 37, 0.7)' },
+                '70%': { transform: 'scale(1)', boxShadow: '0 0 0 20px rgba(244, 37, 37, 0)' },
+                '100%': { transform: 'scale(0.95)', boxShadow: '0 0 0 0 rgba(244, 37, 37, 0)' },
+              },
+              waveform: {
+                '0%, 100%': { height: '20%' },
+                '50%': { height: '100%' },
+              },
+              shake: {
+                '0%, 100%': { transform: 'translateX(0)' },
+                '10%, 30%, 50%, 70%, 90%': { transform: 'translateX(-5px)' },
+                '20%, 40%, 60%, 80%': { transform: 'translateX(5px)' },
               }
             }
           },
