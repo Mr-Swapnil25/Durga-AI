@@ -7,6 +7,7 @@ import BottomNav from './components/BottomNav';
 import FakeCallManager from './components/FakeCallManager';
 import AddCircle from './components/AddCircle';
 import MedicalID from './components/MedicalID';
+import EmergencyOps from './components/EmergencyOps';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const App: React.FC = () => {
@@ -23,6 +24,12 @@ const App: React.FC = () => {
   };
 
   const handleCancelSOS = () => {
+    // After SOS is cancelled (PIN entered), go to Emergency OPS Center
+    setCurrentView(ViewState.EMERGENCY_OPS);
+  };
+
+  const handleMarkSafe = () => {
+    // When user marks themselves safe, return to Dashboard
     setCurrentView(ViewState.DASHBOARD);
   };
 
@@ -35,6 +42,8 @@ const App: React.FC = () => {
     switch (currentView) {
       case ViewState.SOS_ACTIVE:
         return <SOSActive onCancel={handleCancelSOS} />;
+      case ViewState.EMERGENCY_OPS:
+        return <EmergencyOps onMarkSafe={handleMarkSafe} />;
       case ViewState.FAKE_CALL:
         return <FakeCallManager onClose={handleCloseFakeCall} />;
       case ViewState.MAP:
@@ -50,7 +59,7 @@ const App: React.FC = () => {
   };
 
   // Check if we should hide navigation
-  const hideNavigation = currentView === ViewState.SOS_ACTIVE || currentView === ViewState.FAKE_CALL;
+  const hideNavigation = currentView === ViewState.SOS_ACTIVE || currentView === ViewState.FAKE_CALL || currentView === ViewState.EMERGENCY_OPS;
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen w-screen text-slate-900 dark:text-white font-display overflow-hidden flex flex-col selection:bg-primary selection:text-white">

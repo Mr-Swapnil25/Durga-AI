@@ -1,6 +1,7 @@
 export enum ViewState {
   DASHBOARD = 'DASHBOARD',
   SOS_ACTIVE = 'SOS_ACTIVE',
+  EMERGENCY_OPS = 'EMERGENCY_OPS',
   MAP = 'MAP',
   OPS = 'OPS',
   PROFILE = 'PROFILE',
