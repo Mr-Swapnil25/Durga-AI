@@ -11,6 +11,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, setView }) => {
   const isOps = currentView === ViewState.OPS;
   const isMap = currentView === ViewState.MAP;
   const isProfile = currentView === ViewState.PROFILE;
+  const isAlerts = currentView === ViewState.ALERTS;
 
   return (
     <nav className="fixed bottom-0 left-0 w-full z-[2000]">
@@ -48,7 +49,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, setView }) => {
         </div>
 
         <button
-          className="flex flex-col items-center gap-1 text-gray-500 hover:text-white transition-colors"
+          onClick={() => setView(ViewState.ALERTS)}
+          className={`flex flex-col items-center gap-1 ${
+            isAlerts ? 'text-cyber-cyan' : 'text-gray-500 hover:text-white transition-colors'
+          }`}
         >
           <span className="material-symbols-outlined text-2xl">notifications</span>
           <span className="text-[9px] font-bold tracking-widest">ALERTS</span>

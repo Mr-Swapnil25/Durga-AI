@@ -121,7 +121,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onTriggerSOS, setView }) => {
             </div>
           </button>
 
-          <button className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-purple-500/50 to-transparent hover:from-purple-500 transition-colors duration-300">
+          <button 
+            onClick={() => setView(ViewState.COVERT_RECORD)}
+            className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-purple-500/50 to-transparent hover:from-purple-500 transition-colors duration-300"
+          >
             <div className="relative h-full bg-[#0a0a0a] rounded-2xl p-4 flex flex-col gap-3 group-hover:bg-[#111] transition-colors">
               <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-purple-500/20 group-hover:text-purple-400 transition-colors text-white">
                 <span className="material-symbols-outlined">mic</span>
@@ -133,7 +136,10 @@ const Dashboard: React.FC<DashboardProps> = ({ onTriggerSOS, setView }) => {
             </div>
           </button>
 
-          <button className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-emerald-500/50 to-transparent hover:from-emerald-500 transition-colors duration-300">
+          <button 
+            onClick={() => setView(ViewState.SAFE_ROUTE)}
+            className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-emerald-500/50 to-transparent hover:from-emerald-500 transition-colors duration-300"
+          >
             <div className="relative h-full bg-[#0a0a0a] rounded-2xl p-4 flex flex-col gap-3 group-hover:bg-[#111] transition-colors">
               <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-emerald-500/20 group-hover:text-emerald-400 transition-colors text-white">
                 <span className="material-symbols-outlined">security</span>

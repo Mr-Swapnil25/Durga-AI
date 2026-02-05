@@ -1,223 +1,376 @@
 import React, { useEffect, useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup, Circle, ZoomControl, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import { io } from 'socket.io-client';
-import { Radio } from 'lucide-react';
-// CSS is loaded in index.html, importing here causes loader errors in some environments
-// import 'leaflet/dist/leaflet.css';
-import { ViewState, DangerZone } from '../types';
+import { motion, AnimatePresence } from 'framer-motion';
 
-// Fix for Leaflet icons in React
-const fixLeafletIcons = () => {
-  try {
-    // @ts-ignore
-    delete L.Icon.Default.prototype._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-      iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-      shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-    });
-  } catch (e) {
-    console.warn("Failed to fix Leaflet icons", e);
-  }
-};
+interface SafeHaven {
+  id: string;
+  name: string;
+  type: 'hospital' | 'police' | 'light' | 'metro' | 'shelter';
+  position: { top: string; left: string };
+}
 
-fixLeafletIcons();
+interface RouteInfo {
+  name: string;
+  safetyScore: number;
+  duration: string;
+  distance: string;
+  guardiansActive: number;
+  totalGuardians: number;
+}
 
-const darkTileLayer = "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png";
+interface CommunityMapProps {
+  onBack?: () => void;
+}
 
-// Custom Icons
-const createNeonIcon = (color: string) => L.divIcon({
-  className: 'custom-div-icon',
-  html: `<div style="background-color: ${color}; width: 12px; height: 12px; border-radius: 50%; box-shadow: 0 0 10px ${color}, 0 0 20px ${color}; border: 2px solid white;"></div>`,
-  iconSize: [12, 12],
-  iconAnchor: [6, 6]
-});
+const CommunityMap: React.FC<CommunityMapProps> = ({ onBack }) => {
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [isLocating, setIsLocating] = useState(true);
+  const [isNavigating, setIsNavigating] = useState(false);
+  const [showLayers, setShowLayers] = useState(false);
+  const [selectedRoute] = useState<RouteInfo>({
+    name: 'Via 5th Ave & Park St',
+    safetyScore: 98,
+    duration: '12 min',
+    distance: '0.8 mi',
+    guardiansActive: 5,
+    totalGuardians: 5,
+  });
 
-// Pulse Icon for Guardians
-const guardianPulseIcon = L.divIcon({
-  className: 'guardian-pulse',
-  html: `
-    <div class="relative w-8 h-8 flex items-center justify-center -translate-x-1/2 -translate-y-1/2">
-      <div class="absolute w-full h-full bg-guardian-purple rounded-full opacity-75 animate-ping"></div>
-      <div class="relative w-3 h-3 bg-white rounded-full shadow-[0_0_15px_#6B5EAE] border border-guardian-purple"></div>
-    </div>
-  `,
-  iconSize: [32, 32],
-  iconAnchor: [16, 16], // Center the icon (32/2)
-});
-
-const userIcon = createNeonIcon('#00F0FF'); // Cyan
-const dangerIcon = createNeonIcon('#E63946'); // Red
-const safeIcon = createNeonIcon('#00FF9D'); // Greenish/Cyan mix for Safe Haven
-
-// Component to handle auto-fitting bounds
-const MapBoundsController = ({ points }: { points: L.LatLngExpression[] }) => {
-  const map = useMap();
+  const safeHavens: SafeHaven[] = [
+    { id: '1', name: 'City Hospital', type: 'hospital', position: { top: '38%', left: '55%' } },
+    { id: '2', name: 'Well-lit Area', type: 'light', position: { top: '25%', left: '30%' } },
+    { id: '3', name: 'Police Station', type: 'police', position: { top: '45%', left: '70%' } },
+    { id: '4', name: 'Metro Station', type: 'metro', position: { top: '60%', left: '40%' } },
+  ];
 
   useEffect(() => {
-    if (points.length > 0) {
-      const bounds = L.latLngBounds(points);
-      // Pad the bounds so markers aren't on the very edge
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15, animate: true });
+    // Get user location
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setIsLocating(false);
+        },
+        () => {
+          setIsLocating(false);
+        },
+        { enableHighAccuracy: true }
+      );
+    } else {
+      setIsLocating(false);
     }
-  }, [points, map]);
+  }, []);
 
-  return null;
-};
+  const handleCenterLocation = () => {
+    setIsLocating(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserLocation({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          });
+          setIsLocating(false);
+          if (navigator.vibrate) navigator.vibrate(50);
+        },
+        () => setIsLocating(false)
+      );
+    }
+  };
 
-const CommunityMap: React.FC = () => {
-  const center: [number, number] = [51.505, -0.09]; // London default
-  const [simulating, setSimulating] = useState(false);
-  
-  const dangerZones: DangerZone[] = [
-    { id: '1', coords: { lat: 51.508, lng: -0.11 }, radius: 300, riskLevel: 'high' },
-    { id: '2', coords: { lat: 51.502, lng: -0.07 }, radius: 200, riskLevel: 'moderate' },
-  ];
-
-  const safeHavens = [
-    { id: 's1', coords: [51.505, -0.09] as [number, number], name: '24/7 Pharmacy' },
-    { id: 's2', coords: [51.509, -0.08] as [number, number], name: 'Metro Station' },
-  ];
-
-  // Hypothetical Active Guardians
-  const activeGuardians = [
-    { id: 'g1', coords: [51.504, -0.095] as [number, number], name: 'Guardian Alpha', status: 'active' },
-    { id: 'g2', coords: [51.506, -0.085] as [number, number], name: 'Guardian Beta', status: 'active' },
-    { id: 'g3', coords: [51.503, -0.092] as [number, number], name: 'Guardian Gamma', status: 'active' },
-    { id: 'g4', coords: [51.507, -0.098] as [number, number], name: 'Guardian Delta', status: 'active' },
-  ];
-
-  // Collect all points to fit bounds
-  const allPoints: L.LatLngExpression[] = [
-    center,
-    ...dangerZones.map(d => [d.coords.lat, d.coords.lng] as L.LatLngExpression),
-    ...safeHavens.map(s => s.coords as L.LatLngExpression),
-    ...activeGuardians.map(g => g.coords as L.LatLngExpression)
-  ];
-
-  const handleSimulateSignal = () => {
-    setSimulating(true);
+  const handleStartNavigation = () => {
+    setIsNavigating(true);
+    if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
     
-    try {
-      // Connect to the Flask backend (assuming default local port)
-      const socket = io('http://localhost:5000');
-      
-      const mockPayload = {
-        user_id: 'SIM_USER_X99',
-        location: { lat: center[0], lng: center[1] }
-      };
+    // Open Google Maps with walking directions
+    if (userLocation) {
+      const destination = 'Home';
+      window.open(
+        `https://www.google.com/maps/dir/?api=1&origin=${userLocation.lat},${userLocation.lng}&destination=${encodeURIComponent(destination)}&travelmode=walking`,
+        '_blank'
+      );
+    }
+    
+    setTimeout(() => setIsNavigating(false), 2000);
+  };
 
-      console.log("Simulating SOS Broadcast...", mockPayload);
-      socket.emit('trigger_sos', mockPayload);
-
-      // Reset state after 2 seconds to simulate network delay
-      setTimeout(() => {
-        setSimulating(false);
-        socket.disconnect();
-      }, 2000);
-
-    } catch (error) {
-      console.error("Socket connection failed", error);
-      setSimulating(false);
+  const getHavenIcon = (type: SafeHaven['type']) => {
+    switch (type) {
+      case 'hospital': return { icon: 'local_hospital', color: '#00f0ff', shadow: 'rgba(0,240,255,0.5)' };
+      case 'police': return { icon: 'local_police', color: '#3b82f6', shadow: 'rgba(59,130,246,0.5)' };
+      case 'light': return { icon: 'lightbulb', color: '#fbbf24', shadow: 'rgba(251,191,36,0.5)' };
+      case 'metro': return { icon: 'subway', color: '#22c55e', shadow: 'rgba(34,197,94,0.5)' };
+      case 'shelter': return { icon: 'home', color: '#a855f7', shadow: 'rgba(168,85,247,0.5)' };
+      default: return { icon: 'place', color: '#00f0ff', shadow: 'rgba(0,240,255,0.5)' };
     }
   };
 
   return (
-    <div className="w-full h-full relative">
-      {/* HUD Overlay - Top Left */}
-      <div className="absolute top-4 left-4 z-[400] glass-panel px-4 py-2 rounded-lg border-l-4 border-cyber-cyan backdrop-blur-md">
-        <h3 className="text-cyber-cyan font-orbitron text-sm flex items-center gap-2">
-          <span className="w-2 h-2 bg-cyber-cyan rounded-full animate-pulse"></span>
-          COMMUNITY WATCH
-        </h3>
-        <p className="text-[10px] text-gray-400 font-mono mt-1">
-          <span className="text-white font-bold">{activeGuardians.length} GUARDIANS</span> ACTIVE NEARBY
-        </p>
+    <div className="relative w-full h-screen bg-[#0f1115] overflow-hidden">
+      {/* Map Background Layer */}
+      <div className="absolute inset-0 w-full h-full z-0 overflow-hidden">
+        {/* Map Grid Texture */}
+        <div 
+          className="absolute inset-0 pointer-events-none z-10"
+          style={{
+            backgroundSize: '40px 40px',
+            backgroundImage: 'linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px), linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px)',
+          }}
+        />
+        
+        {/* Dark Map Base Image */}
+        <div 
+          className="w-full h-full bg-cover bg-center opacity-40 mix-blend-luminosity grayscale"
+          style={{
+            backgroundImage: 'url("https://lh3.googleusercontent.com/aida-public/AB6AXuDIcwA4MNfbpFT_r7r6bFeBzfr99f2Q5dsuyfL6mZ4OFOMblJe-VK8MIIeh3ZJ6Jz1Ixn6Xfqc_uWI-axpWv-IuIzMlPuQwTQe1f66VoVID8jRsqb7yVE8MP4V6_u8O_DO2jMXppaFa7u2idajX6N7smuzxFQCjBtsM0cEovgpSqlkUWtKbkG_QwCKVX1i2sNtEMquCtw0mP_ttRIT-PTP2jlY2weRJ2a-W54g5lCzl1pElmlCfnBtd8pMoP0MMoKPIRE6xTZq34x8F")',
+          }}
+        />
+
+        {/* Danger Zones (Heatmap Blobs) */}
+        <motion.div 
+          className="absolute top-[30%] left-[20%] w-32 h-32 bg-[#ff2a2a]/30 rounded-full blur-3xl z-10"
+          animate={{ opacity: [0.3, 0.5, 0.3] }}
+          transition={{ duration: 2, repeat: Infinity }}
+        />
+        <div className="absolute bottom-[40%] right-[10%] w-48 h-48 bg-[#ff2a2a]/20 rounded-full blur-3xl z-10" />
+        <div className="absolute top-[50%] left-[60%] w-24 h-24 bg-[#ff2a2a]/25 rounded-full blur-2xl z-10" />
+
+        {/* Route Lines SVG */}
+        <svg className="absolute inset-0 w-full h-full z-20 pointer-events-none" style={{ filter: 'drop-shadow(0 0 8px rgba(0,240,255,0.8))' }}>
+          {/* Safe Route Path */}
+          <motion.path 
+            d="M 180 700 C 200 600, 150 500, 220 400 S 300 300, 180 200 L 150 150" 
+            fill="none" 
+            stroke="#00f0ff" 
+            strokeWidth="4"
+            strokeLinecap="round"
+            strokeDasharray="10 0"
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 2, ease: "easeInOut" }}
+          />
+          
+          {/* Alternative Route (Faint) */}
+          <path 
+            d="M 180 700 C 100 600, 50 500, 100 300 S 150 200, 150 150" 
+            fill="none" 
+            stroke="#4b5563" 
+            strokeWidth="2"
+            strokeDasharray="4 4"
+            className="opacity-40"
+          />
+          
+          {/* Pulse Effect on User Location */}
+          <circle cx="180" cy="700" r="12" fill="#00f0ff" fillOpacity="0.2">
+            <animate attributeName="r" from="12" to="30" dur="1.5s" repeatCount="indefinite" />
+            <animate attributeName="opacity" from="0.6" to="0" dur="1.5s" repeatCount="indefinite" />
+          </circle>
+          <circle cx="180" cy="700" r="6" fill="#00f0ff" stroke="white" strokeWidth="2" />
+        </svg>
+
+        {/* POI Markers */}
+        {safeHavens.map((haven) => {
+          const { icon, color, shadow } = getHavenIcon(haven.type);
+          return (
+            <motion.div
+              key={haven.id}
+              className="absolute flex flex-col items-center gap-1 z-30 transform -translate-x-1/2 cursor-pointer"
+              style={{ top: haven.position.top, left: haven.position.left }}
+              whileHover={{ scale: 1.2 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <div 
+                className="flex items-center justify-center w-8 h-8 rounded-full backdrop-blur-sm"
+                style={{ 
+                  backgroundColor: `${color}20`,
+                  border: `1px solid ${color}`,
+                  boxShadow: `0 0 10px ${shadow}`,
+                }}
+              >
+                <span className="material-symbols-outlined text-[16px]" style={{ color }}>{icon}</span>
+              </div>
+            </motion.div>
+          );
+        })}
+
+        {/* Destination Pin */}
+        <div className="absolute top-[140px] left-[150px] transform -translate-x-1/2 -translate-y-full z-30">
+          <div className="relative flex flex-col items-center">
+            <div className="px-3 py-1 mb-1 rounded-full bg-[#1a1a1a] border border-white/10 backdrop-blur-md shadow-lg">
+              <span className="text-xs font-bold text-white whitespace-nowrap">Home</span>
+            </div>
+            <span 
+              className="material-symbols-outlined text-primary text-4xl drop-shadow-lg"
+              style={{ fontVariationSettings: "'FILL' 1" }}
+            >
+              location_on
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* SOS Simulation Button - Top Right */}
-      <button 
-        onClick={handleSimulateSignal}
-        disabled={simulating}
-        className={`absolute top-4 right-4 z-[400] flex items-center gap-2 px-4 py-2 rounded-lg border backdrop-blur-md transition-all duration-300 ${
-          simulating 
-            ? 'bg-durga-red text-white border-durga-red shadow-[0_0_20px_#E63946]' 
-            : 'bg-black/60 text-durga-red border-durga-red/50 hover:bg-durga-red/20'
-        }`}
-      >
-        <Radio size={16} className={simulating ? 'animate-ping' : ''} />
-        <span className="font-orbitron text-xs font-bold tracking-wider">
-          {simulating ? 'BROADCASTING...' : 'SIMULATE SIGNAL'}
-        </span>
-      </button>
+      {/* Header: Glassmorphic */}
+      <header className="fixed top-0 left-0 right-0 z-50 px-4 pt-4 pb-2 max-w-md mx-auto">
+        <div className="flex items-center justify-between p-3 rounded-full bg-[#1a1a1a]/60 backdrop-blur-md border border-white/5 shadow-lg">
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={onBack}
+              className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 transition-colors"
+            >
+              <span className="material-symbols-outlined text-white">arrow_back</span>
+            </button>
+            <h1 className="text-lg font-bold tracking-tight text-white uppercase drop-shadow-md font-orbitron">SAFE ROUTE AI</h1>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/20 border border-primary/30">
+            <span className="material-symbols-outlined text-primary text-[18px] animate-pulse">security</span>
+            <span className="text-primary text-xs font-bold tracking-wide uppercase">Shield Active</span>
+          </div>
+        </div>
+      </header>
 
-      <MapContainer 
-        center={center} 
-        zoom={14} 
-        style={{ height: '100%', width: '100%', background: '#050505' }}
-        zoomControl={false}
-      >
-        {/* Bounds Controller */}
-        <MapBoundsController points={allPoints} />
+      {/* Map Controls (Floating Right) */}
+      <div className="absolute right-4 top-28 flex flex-col gap-3 z-40 max-w-md mx-auto">
+        <motion.button 
+          onClick={() => setShowLayers(!showLayers)}
+          className={`w-12 h-12 rounded-full backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg transition-colors ${
+            showLayers ? 'bg-cyber-cyan/20 border-cyber-cyan/30' : 'bg-[#1a1a1a]/80'
+          }`}
+          whileTap={{ scale: 0.95 }}
+        >
+          <span className={`material-symbols-outlined ${showLayers ? 'text-cyber-cyan' : 'text-white/80'}`}>layers</span>
+        </motion.button>
+        <motion.button 
+          onClick={handleCenterLocation}
+          className="w-12 h-12 rounded-full bg-[#1a1a1a]/80 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-lg"
+          whileTap={{ scale: 0.95 }}
+        >
+          {isLocating ? (
+            <div className="w-5 h-5 border-2 border-cyber-cyan border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <span className="material-symbols-outlined text-white/80">my_location</span>
+          )}
+        </motion.button>
+      </div>
 
-        <ZoomControl position="bottomright" />
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-          url={darkTileLayer}
-        />
-
-        {/* User Location */}
-        <Marker position={center} icon={userIcon}>
-          <Popup className="glass-popup font-space text-black">YOU ARE HERE</Popup>
-        </Marker>
-
-        {/* Pulse Effect for User Radar */}
-        <Circle 
-          center={center}
-          pathOptions={{ color: '#00F0FF', fillColor: '#00F0FF', fillOpacity: 0.05, weight: 1 }}
-          radius={400}
-        />
-        <Circle 
-          center={center}
-          pathOptions={{ color: 'transparent', fillColor: '#00F0FF', fillOpacity: 0.1, weight: 0 }}
-          radius={100}
-        />
-
-        {/* Danger Zones */}
-        {dangerZones.map(zone => (
-          <Circle
-            key={zone.id}
-            center={[zone.coords.lat, zone.coords.lng]}
-            radius={zone.radius}
-            pathOptions={{ color: '#E63946', fillColor: '#E63946', fillOpacity: 0.15, weight: 1, dashArray: '5, 10' }}
+      {/* Layer Options Panel */}
+      <AnimatePresence>
+        {showLayers && (
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            className="absolute right-20 top-28 z-40 p-3 rounded-xl bg-[#1a1a1a]/90 backdrop-blur-md border border-white/10 shadow-lg"
           >
-             <Marker position={[zone.coords.lat, zone.coords.lng]} icon={dangerIcon}>
-               <Popup className="font-space text-red-600 font-bold">HIGH RISK ZONE</Popup>
-             </Marker>
-          </Circle>
-        ))}
+            <p className="text-xs text-gray-400 uppercase tracking-wider mb-2 font-bold">Layers</p>
+            <div className="space-y-2">
+              {['Danger Zones', 'Safe Havens', 'Guardians', 'Routes'].map((layer) => (
+                <label key={layer} className="flex items-center gap-2 cursor-pointer">
+                  <input type="checkbox" defaultChecked className="w-4 h-4 rounded bg-gray-800 border-gray-600 text-cyber-cyan focus:ring-cyber-cyan" />
+                  <span className="text-white text-sm">{layer}</span>
+                </label>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        {/* Safe Havens */}
-        {safeHavens.map(haven => (
-          <Marker key={haven.id} position={haven.coords} icon={safeIcon}>
-             <Popup className="font-space text-teal-600 font-bold">{haven.name}</Popup>
-          </Marker>
-        ))}
+      {/* Bottom Content Wrapper */}
+      <div className="absolute bottom-0 left-0 w-full z-50 flex flex-col justify-end pointer-events-none pb-24 max-w-md mx-auto">
+        {/* Gradient overlay for readability at bottom */}
+        <div className="absolute bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent pointer-events-none" />
+        
+        <div className="w-full px-4 pb-4 pointer-events-auto relative z-10">
+          {/* Route Info Card */}
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full rounded-2xl bg-[#1a1a1a]/70 backdrop-blur-xl border border-white/10 shadow-lg overflow-hidden mb-4"
+          >
+            {/* Subtle Pattern Background */}
+            <div 
+              className="absolute inset-0 opacity-5 pointer-events-none"
+              style={{
+                backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='24' height='40' viewBox='0 0 24 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 40c5.523 0 10-4.477 10-10V10c0-5.523 4.477-10 10-10s10 4.477 10 10v20c0 5.523-4.477 10-10 10S0 35.523 0 30V10C0 4.477 4.477 0 10 0s10 4.477 10 10v20c0 5.523-4.477 10-10 10S0 35.523 0 30v-10z' fill='%23ffffff' fill-opacity='1' fill-rule='evenodd'/%3E%3C/svg%3E\")",
+                backgroundSize: '20px 20px',
+              }}
+            />
 
-        {/* Active Guardians with Pulse Effect */}
-        {activeGuardians.map(guardian => (
-          <Marker key={guardian.id} position={guardian.coords} icon={guardianPulseIcon}>
-            <Popup className="font-space">
-              <div className="text-xs">
-                <strong className="text-guardian-purple">{guardian.name}</strong><br/>
-                <span className="text-green-600">● Active</span>
+            {/* Card Content */}
+            <div className="p-5 relative z-10">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-cyber-cyan text-sm font-bold tracking-widest uppercase">Safe Route Selected</span>
+                    <span className="w-2 h-2 rounded-full bg-cyber-cyan shadow-[0_0_8px_#00f0ff]" />
+                  </div>
+                  <h3 className="text-xl font-bold text-white font-display">{selectedRoute.name}</h3>
+                </div>
+                <div className="flex flex-col items-end">
+                  <span 
+                    className="text-3xl font-bold text-cyber-cyan leading-none"
+                    style={{ textShadow: '0 0 5px rgba(0,240,255,0.6)' }}
+                  >
+                    {selectedRoute.safetyScore}%
+                  </span>
+                  <span className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mt-1">Safety Score</span>
+                </div>
               </div>
-            </Popup>
-          </Marker>
-        ))}
 
-      </MapContainer>
+              <div className="grid grid-cols-2 gap-3 mb-5">
+                <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3 border border-white/5">
+                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-white">
+                    <span className="material-symbols-outlined text-[18px]">schedule</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-sm">{selectedRoute.duration}</p>
+                    <p className="text-gray-400 text-xs">{selectedRoute.distance}</p>
+                  </div>
+                </div>
+                <div className="bg-white/5 rounded-xl p-3 flex items-center gap-3 border border-white/5">
+                  <div 
+                    className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary"
+                    style={{ boxShadow: '0 0 8px rgba(244,37,37,0.3)' }}
+                  >
+                    <span className="material-symbols-outlined text-[18px]">group_add</span>
+                  </div>
+                  <div>
+                    <p className="text-white font-bold text-sm">{selectedRoute.guardiansActive}/{selectedRoute.totalGuardians} Active</p>
+                    <p className="text-gray-400 text-xs">Guardians</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <motion.button 
+                onClick={handleStartNavigation}
+                disabled={isNavigating}
+                className="w-full relative overflow-hidden rounded-full h-14 flex items-center justify-center shadow-lg"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary to-orange-600 transition-opacity" />
+                <div className="relative z-10 flex items-center gap-2">
+                  {isNavigating ? (
+                    <>
+                      <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      <span className="text-white font-bold text-lg tracking-wide uppercase font-display">Starting...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="text-white font-bold text-lg tracking-wide uppercase font-display">Start Navigation</span>
+                      <span className="material-symbols-outlined text-white animate-pulse">navigation</span>
+                    </>
+                  )}
+                </div>
+                {/* Button Glow Effect */}
+                <div className="absolute inset-0 rounded-full blur-md bg-primary/40 -z-10" />
+              </motion.button>
+            </div>
+          </motion.div>
+        </div>
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ViewState } from './types';
 import Dashboard from './components/Dashboard';
 import SOSActive from './components/SOSActive';
@@ -8,11 +8,38 @@ import FakeCallManager from './components/FakeCallManager';
 import AddCircle from './components/AddCircle';
 import MedicalID from './components/MedicalID';
 import EmergencyOps from './components/EmergencyOps';
+import PermissionsSetup from './components/PermissionsSetup';
+import Alerts from './components/Alerts';
+import CovertRecord from './components/CovertRecord';
+import SafeRoute from './components/SafeRoute';
 import { AnimatePresence, motion } from 'framer-motion';
 
 const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
   const [previousView, setPreviousView] = useState<ViewState>(ViewState.DASHBOARD);
+  const [hasCompletedSetup, setHasCompletedSetup] = useState<boolean>(() => {
+    // Check localStorage for setup completion
+    return localStorage.getItem('durga_setup_complete') === 'true';
+  });
+
+  // Show permissions setup on first launch
+  useEffect(() => {
+    if (!hasCompletedSetup) {
+      setCurrentView(ViewState.PERMISSIONS_SETUP);
+    }
+  }, [hasCompletedSetup]);
+
+  const handleSetupComplete = () => {
+    localStorage.setItem('durga_setup_complete', 'true');
+    setHasCompletedSetup(true);
+    setCurrentView(ViewState.DASHBOARD);
+  };
+
+  const handleSetupSkip = () => {
+    localStorage.setItem('durga_setup_complete', 'true');
+    setHasCompletedSetup(true);
+    setCurrentView(ViewState.DASHBOARD);
+  };
 
   const handleViewChange = (view: ViewState) => {
     setPreviousView(currentView);
@@ -40,6 +67,8 @@ const App: React.FC = () => {
   // Render content based on current view
   const renderContent = () => {
     switch (currentView) {
+      case ViewState.PERMISSIONS_SETUP:
+        return <PermissionsSetup onComplete={handleSetupComplete} onSkip={handleSetupSkip} />;
       case ViewState.SOS_ACTIVE:
         return <SOSActive onCancel={handleCancelSOS} />;
       case ViewState.EMERGENCY_OPS:
@@ -47,11 +76,17 @@ const App: React.FC = () => {
       case ViewState.FAKE_CALL:
         return <FakeCallManager onClose={handleCloseFakeCall} />;
       case ViewState.MAP:
-        return <CommunityMap />;
+        return <CommunityMap onBack={() => setCurrentView(ViewState.DASHBOARD)} />;
       case ViewState.OPS:
         return <AddCircle />;
       case ViewState.PROFILE:
         return <MedicalID />;
+      case ViewState.ALERTS:
+        return <Alerts />;
+      case ViewState.COVERT_RECORD:
+        return <CovertRecord />;
+      case ViewState.SAFE_ROUTE:
+        return <SafeRoute />;
       case ViewState.DASHBOARD:
       default:
         return <Dashboard onTriggerSOS={handleTriggerSOS} setView={handleViewChange} />;
@@ -59,7 +94,7 @@ const App: React.FC = () => {
   };
 
   // Check if we should hide navigation
-  const hideNavigation = currentView === ViewState.SOS_ACTIVE || currentView === ViewState.FAKE_CALL || currentView === ViewState.EMERGENCY_OPS;
+  const hideNavigation = currentView === ViewState.SOS_ACTIVE || currentView === ViewState.FAKE_CALL || currentView === ViewState.EMERGENCY_OPS || currentView === ViewState.PERMISSIONS_SETUP;
 
   return (
     <div className="bg-background-light dark:bg-background-dark min-h-screen w-screen text-slate-900 dark:text-white font-display overflow-hidden flex flex-col selection:bg-primary selection:text-white">

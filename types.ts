@@ -5,7 +5,11 @@ export enum ViewState {
   MAP = 'MAP',
   OPS = 'OPS',
   PROFILE = 'PROFILE',
-  FAKE_CALL = 'FAKE_CALL'
+  FAKE_CALL = 'FAKE_CALL',
+  PERMISSIONS_SETUP = 'PERMISSIONS_SETUP',
+  ALERTS = 'ALERTS',
+  COVERT_RECORD = 'COVERT_RECORD',
+  SAFE_ROUTE = 'SAFE_ROUTE'
 }
 
 export interface Coordinates {
