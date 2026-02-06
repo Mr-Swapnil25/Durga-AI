@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { ViewState } from './types';
 import Dashboard from './components/Dashboard';
 import SOSActive from './components/SOSActive';
-import CommunityMap from './components/CommunityMap';
 import BottomNav from './components/BottomNav';
 import FakeCallManager from './components/FakeCallManager';
 import AddCircle from './components/AddCircle';
@@ -75,8 +74,6 @@ const App: React.FC = () => {
         return <EmergencyOps onMarkSafe={handleMarkSafe} />;
       case ViewState.FAKE_CALL:
         return <FakeCallManager onClose={handleCloseFakeCall} />;
-      case ViewState.MAP:
-        return <CommunityMap onBack={() => setCurrentView(ViewState.DASHBOARD)} />;
       case ViewState.OPS:
         return <AddCircle />;
       case ViewState.PROFILE:

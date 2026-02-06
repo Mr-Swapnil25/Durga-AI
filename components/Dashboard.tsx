@@ -107,16 +107,16 @@ const Dashboard: React.FC<DashboardProps> = ({ onTriggerSOS, setView }) => {
           </button>
 
           <button
-            onClick={() => setView(ViewState.MAP)}
-            className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-primary/50 to-transparent hover:from-primary transition-colors duration-300"
+            onClick={() => setView(ViewState.OPS)}
+            className="group relative p-[1px] rounded-2xl bg-gradient-to-b from-cyber-cyan/50 to-transparent hover:from-cyber-cyan transition-colors duration-300"
           >
             <div className="relative h-full bg-[#0a0a0a] rounded-2xl p-4 flex flex-col gap-3 group-hover:bg-[#111] transition-colors">
-              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-primary/20 group-hover:text-primary transition-colors text-white">
-                <span className="material-symbols-outlined">share_location</span>
+              <div className="w-10 h-10 rounded-full bg-gray-800 flex items-center justify-center group-hover:bg-cyber-cyan/20 group-hover:text-cyber-cyan transition-colors text-white">
+                <span className="material-symbols-outlined">group</span>
               </div>
               <div>
-                <p className="text-white font-bold text-sm">Live Location</p>
-                <p className="text-gray-500 text-[10px] mt-1">Real-time coordinates</p>
+                <p className="text-white font-bold text-sm">Guardians</p>
+                <p className="text-gray-500 text-[10px] mt-1">Manage circle</p>
               </div>
             </div>
           </button>

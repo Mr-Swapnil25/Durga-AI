@@ -13,9 +13,6 @@
     <!-- Material Symbols -->
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
     
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-
     <!-- Tailwind CSS with Custom Config -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -113,75 +110,6 @@
         text-shadow: 0 0 10px rgba(0, 240, 255, 0.7);
       }
       
-      /* Leaflet overrides for Dark Mode & Cyberpunk Style */
-      .leaflet-container {
-        background: #050505 !important;
-        font-family: 'Space Grotesk', sans-serif !important;
-      }
-      
-      /* Control Containers */
-      .leaflet-bar {
-        border: none !important;
-        box-shadow: 0 0 15px rgba(0, 0, 0, 0.8) !important;
-      }
-      
-      /* Zoom Buttons */
-      .leaflet-bar a {
-        background-color: rgba(18, 18, 18, 0.85) !important; /* Void Gray transparency */
-        color: #6B5EAE !important; /* Guardian Purple */
-        border: 1px solid rgba(107, 94, 174, 0.3) !important;
-        border-radius: 4px !important;
-        margin-bottom: 4px !important;
-        transition: all 0.2s ease;
-        backdrop-filter: blur(4px);
-      }
-      
-      /* Fix rounded corners for separated buttons */
-      .leaflet-bar a:first-child {
-        border-top-left-radius: 4px !important;
-        border-top-right-radius: 4px !important;
-      }
-      .leaflet-bar a:last-child {
-        border-bottom-left-radius: 4px !important;
-        border-bottom-right-radius: 4px !important;
-        margin-bottom: 0 !important;
-      }
-
-      /* Hover States */
-      .leaflet-bar a:hover {
-        background-color: #6B5EAE !important;
-        color: #fff !important;
-        box-shadow: 0 0 10px #6B5EAE;
-        border-color: #6B5EAE !important;
-      }
-
-      /* Disabled State */
-      .leaflet-bar a.leaflet-disabled {
-        background-color: rgba(10, 10, 10, 0.8) !important;
-        color: #333 !important;
-        border-color: #333 !important;
-      }
-
-      /* Attribution Control */
-      .leaflet-control-attribution {
-        background: rgba(5, 5, 5, 0.6) !important;
-        color: #666 !important;
-        font-size: 9px !important;
-        font-family: 'Orbitron', sans-serif !important;
-        border-top-left-radius: 4px;
-        backdrop-filter: blur(2px);
-        margin-right: 0 !important;
-        margin-bottom: 0 !important;
-      }
-      .leaflet-control-attribution a {
-        color: #6B5EAE !important;
-        text-decoration: none !important;
-      }
-
-      /* Shift controls up to clear BottomNav */
-      .leaflet-bottom {
-        bottom: 85px !important;
-      }
     </style>
   <script type="importmap">
 {
@@ -191,9 +119,6 @@
     "react/": "https://esm.sh/react@^19.2.4/",
     "react": "https://esm.sh/react@^19.2.4",
     "lucide-react": "https://esm.sh/lucide-react@^0.563.0",
-    "leaflet/": "https://esm.sh/leaflet@^1.9.4/",
-    "leaflet": "https://esm.sh/leaflet@^1.9.4",
-    "react-leaflet": "https://esm.sh/react-leaflet@^5.0.0",
     "socket.io-client": "https://esm.sh/socket.io-client@4.7.4"
   }
 }

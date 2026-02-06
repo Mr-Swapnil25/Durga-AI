@@ -9,7 +9,7 @@ interface BottomNavProps {
 const BottomNav: React.FC<BottomNavProps> = ({ currentView, setView }) => {
   const isDashboard = currentView === ViewState.DASHBOARD;
   const isOps = currentView === ViewState.OPS;
-  const isMap = currentView === ViewState.MAP;
+  const isSafeRoute = currentView === ViewState.SAFE_ROUTE;
   const isProfile = currentView === ViewState.PROFILE;
   const isAlerts = currentView === ViewState.ALERTS;
 
@@ -38,9 +38,9 @@ const BottomNav: React.FC<BottomNavProps> = ({ currentView, setView }) => {
 
         <div className="relative -top-8">
           <button
-            onClick={() => setView(ViewState.MAP)}
+            onClick={() => setView(ViewState.SAFE_ROUTE)}
             className={`w-16 h-16 rounded-full bg-[#1a1a1a] border-4 border-[#050505] flex items-center justify-center shadow-neon-red relative z-10 group ${
-              isMap ? 'text-cyber-cyan' : 'text-primary'
+              isSafeRoute ? 'text-cyber-cyan' : 'text-primary'
             }`}
           >
             <div className="absolute inset-0 bg-primary/10 rounded-full group-hover:bg-primary/20 transition-colors"></div>
